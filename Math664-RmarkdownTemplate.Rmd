@@ -1,0 +1,47 @@
+---
+title: "Math 664: Hw 1"
+output:
+  pdf_document: default
+  html_document: default
+date: "1 Jan 1975"
+theme: cerulean
+---
+
+<!-- For more info on RMarkdown see http://rmarkdown.rstudio.com/ -->
+
+## Name: 
+
+### 1. Save this template with a different name (LastNameInitials-hw1.Rmd), then edit the new file.
+
+### 2. Enter the code required to load your data in the space below. The data will be loaded but the line of code won't show up in your write up (echo=FALSE) in order to save space
+
+```{r echo=FALSE}
+seventhgrade<-read.table("seventhgrade.txt", header=T)
+```
+
+### 3. In the remainder of the document, add R code chunks as needed
+<!-- In the remainder of the document, add R code chunks as needed -->
+
+```{r}
+head(seventhgrade)
+names(seventhgrade)
+```
+```{r}
+summary(seventhgrade$GPA)
+```
+
+### 4. This R code chunk makes an histogram, but not print the code. If you remove "echo=FALSE" and re-run, the line of code will appear in the document.
+
+
+```{r, echo=FALSE, fig.align='center'}
+boxplot(seventhgrade$GPA)
+```
+
+### 5. Here is a scatter plot, where I changed the default color, size and the symbol used to represent the dots
+
+```{r, fig.align='center'}
+plot(seventhgrade$IQ, seventhgrade$SelfConcept, xlab="IQ", 
+     ylab="Self Concept", main="",pch=20, col=3, cex=2)
+```
+
+Note: for an actual assignment submission, you will need to comment on the results you got. Also, you should only include what you think is necessary to convey the conclusions of your analysis.

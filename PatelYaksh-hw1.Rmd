@@ -1,0 +1,292 @@
+---
+title: 'Math 664: Hw 1'
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+date: " Feb 2022"
+theme: cerulean
+---
+
+## Name: Yaksh Patel
+## ID: 31536823
+
+### ___Q1_________________________________
+
+```{r echo=FALSE, results = FALSE, results='hide', message=FALSE, warning=FALSE}
+
+library(rmarkdown) # FOR KNITTING THE FILE
+library(tinytex)
+library(data.table) # FOR TABLE OPERATIONS - Check Months_Tot variable
+library(dplyr) # FOR COUNTING/FREQUENCY IF VALUES - Check Months_Tot variable
+library(plotly) # FOR PLOTTING - Check the last graph of Q1
+```
+
+Importing the Data set
+```{r echo=FALSE}
+donate<-read.csv("C:/Users/Yaksh/OneDrive/Desktop/Math664/Donations.csv", header=T)
+#View(donate)
+```
+
+Checking and Removing NA values
+```{r echo=FALSE}
+if (which(is.na(donate)) != 0)
+{
+  dona <- na.omit(donate) 
+}
+#View(dona)
+```
+
+Summary for quick glance
+```{r echo=FALSE}
+summary(dona)
+```
+
+Box-plot
+```{r, echo=FALSE, fig.align='center'}
+boxplot(dona$Amount, ylab="", main = "Boxplot of Donated Amounts", xlab = paste("Amount\nOutliers: ", paste(boxplot.stats(dona$Amount)$out, collapse = ", ")), horizontal = TRUE, notch = FALSE, col="cyan", pch=16)
+```
+
+Stats of Box-plot
+```{r echo=FALSE}
+Stats<- c('Lower Whisker', 'Q1', 'Q2 (Median)', 'Q3', "Upper Whisker","IQR (Inter Quartile Range)")
+Stat_Values<-c(boxplot.stats(dona$Amount)$stats, IQR(dona$Amount))
+bp_stat<-data.frame(Stats, Stat_Values)
+bp_stat
+```
+
+
+From the Summary, Box-plot (and its stats) of the cleaned data set, we infer that: -
+<li>There 51 valid records, 9th entry was Na.</li>
+<li>From the summary, we get the minimum and maximum amount.</li>
+<li>We also get the information about quartiles and the mean.</li>
+<li>Median < Mean for the data, thus, it is mildly-skewed right (positive skew).</li>
+<li>There are 3 outliers present in the Amount of the data set which lie out of the Upper and Lower Fence.</li>
+
+
+#### Scatter-plot
+```{r echo=FALSE, fig.align='center'}
+dona$Date = as.Date(dona$Date, "%m/%d/%Y")
+dona$months = months(dona$Date)
+for (i in 1:length(dona$months))
+{
+  if(dona$months[i] == "June"){
+    dona$plt_color[i] <- "navy"
+  }
+  else if(dona$months[i] == "July"){
+    dona$plt_color[i] <- "yellow"
+  }
+  else if(dona$months[i] == "August"){
+    dona$plt_color[i] <- "red"
+  }
+  else if(dona$months[i] == "September"){
+    dona$plt_color[i] <- "olivedrab"
+  }
+  else if(dona$months[i] == "October"){
+    dona$plt_color[i] <- "purple"
+  }
+  else if(dona$months[i] == "November"){
+    dona$plt_color[i] <- "orange"
+  }
+  else if(dona$months[i] == "December"){
+    dona$plt_color[i] <- "green"
+  }
+  else if(dona$months[i] == "January"){
+    dona$plt_color[i] <- "brown"
+  }
+  else if(dona$months[i] == "February"){
+    dona$plt_color[i] <- "black"
+  }
+  else if(dona$months[i] == "March"){
+    dona$plt_color[i] <- "blue"
+  }
+  else if(dona$months[i] == "April"){
+    dona$plt_color[i] <- "indianred4"
+  }
+  else { #May
+    dona$plt_color[i] <- "hotpink"
+  }
+}
+plot(dona$Date, dona$Amount, xlab='Amount', ylab='Date (Ascending Order)', main="Donations according to months",pch='$', col=dona$plt_color[], cex=1, tck=1, bg="cyan")
+```
+
+The Data points are color-coded for each month so that it is easier to identify the values, frequencies, anomalies, etc. for the corresponding weeks of the month. It is in the chronological order starting from June 26, 2011 to June 17, 2012. Highest single donation of $48269 is in the 19th week, October 2012.
+
+
+Checking donations per month and ordering them in decreasing order.
+```{r echo=FALSE, fig.align = 'center'}
+library(data.table) 
+donaTab = setDT(dona)
+Months_Tot=donaTab[ ,list(sum=sum(Amount)), by=months]
+Months_Tot <- Months_Tot[order(-Months_Tot$sum)]
+library(dplyr)
+abc<-dona %>% group_by(months) %>% summarise(count = n())
+Months_Tot$count<-integer(nrow(Months_Tot))
+i=1
+for (j in 1:12)
+{
+  for(i in 1:12)
+  {
+    if(Months_Tot$months[j] == abc[i,1,i]){
+      Months_Tot$count[j]<- abc[i,2,i]
+      break
+    }
+  }
+}
+Months_Tot$Amount_Per_Donation = Months_Tot$sum/Months_Tot$count
+Months_Tot
+```
+
+This table demonstrates: -
+<li> Amount of total donation of the month. Min: May ($29464); Max: December ($89249).</li>
+<li> Frequency of donations for that month. Min: August (3); Max: October, April, January, July (5).</li>
+<li> Mean amount per donation in the month. Min: May ($7366); Max: December ($22312).</li>
+<li> Data is sorted in the Descending order of the sum of the total donation Amount.</li>
+<li> The month with the highest mean donation is also the month with the highest total donation.</li>
+<li> The month with the lowest mean donation is also the month with the lowest total donation.</li>
+<li> Reason for December being highest could be the due the season of Christmas and New Year. On the other hand, October and November also have high amounts of donations, probably due to the festivals of other religions, say Hinduism in that month.</li>
+<li> The Graph below is a visual representation of the donations made every month.</li>
+
+```{r echo=FALSE, fig.align = 'center'}
+barplot(Months_Tot$sum, main="Monthly Total", xlab="Months",  
+   ylab="Sum", names.arg=c(Months_Tot$months), 
+   border="green", density=c(seq(1, 61, by=5)))
+```
+
+Comparing how th donations differ monthly
+```{r echo=FALSE, fig.align = 'center'}
+f1 <- function(dona) {
+  gg <- ggplot(dona, aes(months,Amount)) + geom_boxplot()
+  assign("ggp", plotly::ggplotly(gg), envir=parent.frame())
+  df    # NOT returning a plot
+}
+res1 <- f1(dona)
+ggp   # Let knitr handle the rendering naturally
+```
+
+This graph compares the distribution of donation amounts across all the months.
+<li> It is evident from the table that all the outliers are the ones which are above the upperfence and none are below the lower fence.</li>
+<li> The highest donations of July and October are outliers for them, making their box smaller, adding to that, their upper whisker and the 3rd Quartile coincide each other. Both of them are positive-skewed (right).</li>
+<li> February's smallest box represents that the values don't vary highly for that month.</li>
+<li> December's highest donation was an outlier when overall donations of the year were considered previously, however, here for itself, it seems to be in the allowed range.</li>
+
+
+
+### ___Q2_________________________________
+```{r echo=FALSE, results = FALSE, results='hide', message=FALSE, warning=FALSE}
+library(car) # For scatterplot()
+library(fBasics) # To Check Residuals for Normality, jarqueberaTest()
+library(lmtest) # Test for Independence of Residuals, dwtest()
+```
+
+Importing the Data and its summary
+```{r echo=FALSE}
+H2O<-read.table("C:/Users/Yaksh/OneDrive/Desktop/Math664/Water.dat", header=T)
+#View(H2O)
+summary(H2O)
+#describe(H2O)
+```
+
+Plotting the points for overall idea of the scattering
+```{r echo=FALSE}
+scatterplot(H2O$Temp,H2O$Pressure, xlab = 'x (Temperature)', ylab = 'y (Pressure)', grid = TRUE, col = 'purple3', ellipse = FALSE, regLine = FALSE, smooth = FALSE, pch = 0)
+```
+
+Initializing data structure for predicted values of y, generating regression function and its summary
+```{r echo=FALSE}
+y = H2O[,2]
+x = H2O$Temp
+#y_pred_1 <- H2O[,1]*0
+reg <- lm(y~x)
+summary(reg)
+```
+
+Analysis of Variance
+```{r echo=FALSE}
+anova(reg)
+```
+
+Plot of the line
+```{r echo=FALSE}
+scatterplot(x,y, xlab = 'x (Temperature)', ylab = 'y (Pressure)', grid = TRUE, col = 'purple3', ellipse = FALSE, regLine = TRUE, smooth = FALSE, pch = 0, boxplots = FALSE)
+```
+
+```{r echo=FALSE}
+gvlma::gvlma(reg, alphalevel = 0.05)
+```
+
+The points appear random and the line quite pretty flat, without increasing or decreasing
+trend. So, the condition of homoscedasticity can be accepted. Thus, Homoscedasticity (variance of the dependent variable being same across the data)
+assumption is satisfied. 
+Kurtosis is a statistical measure that defines how heavily the tails of a distribution differ from the tails of a normal distribution.
+```{r echo=FALSE}
+par(mfrow=c(length(H2O),length(H2O)))
+plot(reg)
+```
+
+Time-series analysis for independence of Residuals (trend in the data based on previous instances). It is to check whether residual are independent of one another.
+```{r echo=FALSE}
+library(lmtest) 
+dwtest(reg) #Test for independence of Residuals
+```
+
+Confidence Interval (Point estimate, lower and upper boundary of Pressure for Temp = 185'F)
+```{r echo=FALSE}
+xnew = data.frame(x=185)
+predict(reg, xnew, interval="confidence", level = 0.95)
+```
+
+Prediction Interval (Point estimate, lower and upper boundary of Pressure for Temp = 185'F)
+```{r echo=FALSE}
+predict(reg, xnew, interval="prediction", level = 0.95)
+```
+
+Since the beginning, the data of Pressure and Temperature seems quite linear from the plot of the points. We found out the data summary including mean, median and quartiles. Though the boxes look symmetrical but whiskers of the box-plot are unequal. Hence, we can say there is variability outside the range of 1st and 3rd quartile (Right skewed). The intercept is -64.4 and the slope is 0.44. The errors of residuals are magnificently low (almost 0 for the slope) with good values of F-statistics to satisfy the hypothesis condition. Multiple R-squared and adjusted R-squared values are impressive (.992 and .991 respectively). Other conditions are fulfilled. 
+
+However, there might be a mild curvature in the relationship. As few of the high-pressure and high-temperature values along with low-pressure and low-temperature values, seem to be slightly above the line. And some of the points near the central region seem to be quite below te line. Therefore, I tried to go for another approach using log of Pressure against Temperature below. It gives more accurate and precise results. It helps in reducing the error value of Intercept significantly (by 97.65%). Same goes for the slope, although, its error was already negligible. The multiple and adjusted R-squared values are almost close to .998. Thus, the 2nd model is little more preferable. 
+
+The relationship between the Altitude and Pressure or the Pressure and Temperature may change for different range of the values, i.e.: probably at slightly lower altitudes the relationships between the response and the predictors might not be linear, they might form curvature, etc.
+
+2nd approach using log(Pressure) against Temperature
+```{r echo=FALSE}
+water<-H2O
+water$logP = log(water$Pressure)
+temp <- water$Temp
+logP = water$logP
+reg2 <- lm(logP~temp)
+summary(reg2)
+```
+
+Analysis of Variance
+```{r echo=FALSE}
+anova(reg2)
+```
+
+```{r echo=FALSE}
+scatterplot(temp,logP, xlab = 'Temperature', ylab = 'log(Pressure)', grid = TRUE, col = 'FORESTGREEN', ellipse = FALSE, regLine = TRUE, smooth = FALSE, pch = 0, boxplots = FALSE)
+xnew = data.frame(temp=185)
+```
+New Confidence Interval for reg2 with logP at Temp=185'F
+```{r echo=FALSE}
+exp(predict(reg2, xnew, interval="confidence", level = 0.95))
+```
+
+New Prediction Interval for reg2 with logP at Temp=185'F
+```{r echo=FALSE}
+exp(predict(reg2, xnew, interval="prediction", level = 0.95))
+```
+
+
+References: -
+<li>https://github.com/YKP-The-GREAT/Death_Rate_Model_Comparison/blob/main/x28_Models.R</li>
+<li>https://statisticsglobe.com</li>
+<li>https://statology.com</li>
+<li>https://stackoverflow.com</li>
+<li>https://r4ds.had.co.nz/exploratory-data-analysis.html</li>
+<li>https://sites.harding.edu/fmccown/r/</li>
+<li>https://www.rdocumentation.org</li>
+<li>http://www.sthda.com/</li>
+<li>https://www.datacamp.com/</li>
+<li>https://www.datasciencemadesimple.com/</li>
+<li>https://corporatefinanceinstitute.com/resources/knowledge/other/kurtosis/</li>
+<li>https://www.learnbymarketing.com/tutorials/linear-regression-in-r/</li>
